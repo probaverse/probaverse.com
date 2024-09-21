@@ -24,8 +24,8 @@ sections:
             - Transform and refine distributions to reflect observations.
             - Assemble multivariate models for deeper insights.
           button:
-            text: Find it on GitHub
-            url: https://github.com/probaverse/
+            text: Installation Instructions
+            url: /#get_started
     design:
       # Section background color (CSS class)
       css_class: "bg-gray-100 dark:bg-gray-900"
@@ -85,35 +85,36 @@ sections:
 
 
   ## ------- SECTION: Recent Posts -------
-  - block: collection
-    content:
-      count: 2
-      filters:
-        author: ""
-        category: ""
-        exclude_featured: false
-        exclude_future: false
-        exclude_past: false
-        publication_type: ""
-        tag: ""
-      offset: 0
-      order: desc
-      page_type: post
-      subtitle: ""
-      text: "Explore more about how the probaverse philosophy can transform the way you think about data analysis."
-      title: Probaverse Blog
-    design:
-      spacing:
-        padding:
-        - 0
-        - 0
-        - 0
-        - 0
-      view: article-grid # article date-title-summary
-    id: news
+  #- block: collection
+  #  content:
+  #    count: 2
+  #    filters:
+  #      author: ""
+  #      category: ""
+  #      exclude_featured: false
+  #      exclude_future: false
+  #      exclude_past: false
+  #      publication_type: ""
+  #      tag: ""
+  #    offset: 0
+  #    order: desc
+  #    page_type: post
+  #    subtitle: ""
+  #    text: "Explore more about how the probaverse philosophy can transform the way you think about data analysis."
+  #    title: Probaverse Blog
+  #  design:
+  #    spacing:
+  #      padding:
+  #      - 0
+  #      - 0
+  #      - 0
+  #      - 0
+  #    view: article-grid # article date-title-summary
+  #  id: news
 
   
   - block: cta-card
+    id: get_started
     content:
       title: Get started with the probaverse.
       text: |-
@@ -123,12 +124,12 @@ sections:
         remotes::install_github("probaverse/distplyr")
         remotes::install_github("probaverse/famish")
         ```
-      button:
-        text: Find it on GitHub
-        url: https://github.com/probaverse/
+      #button:
+      #  text: Find it on GitHub
+      #  url: https://github.com/probaverse/
     design:
       card:
         # Card background color (CSS class)
-        css_class: "bg-primary-700"
+        css_class: "bg-primary-700" # "bg-purple-500" # "bg-primary-700"
         css_style: ""
 ---
