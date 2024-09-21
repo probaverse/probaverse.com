@@ -37,7 +37,11 @@ sections:
       text: ""
       items:
         - name: "Vincenzo Coia"
+          #username: '@geo'
+          # Image path relative to assets/media/ folder
+          image_filename: tweets/GitHub.png
           role: "Statistical Data Scientist"
+          link: "https://vincenzocoia.com"
           # Upload image to `assets/media/` and reference the filename here
           image: "vincenzo-smiley-headshot.jpg"
           text: "Uncertainty is inevitable in almost all complex systems, from financial markets to environmental systems to the human body. The probaverse offers a way to accept uncertainty, model it, and use those insights to make smarter, more informed decisions."

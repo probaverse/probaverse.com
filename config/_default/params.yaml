@@ -17,7 +17,7 @@ marketing:
     description: 'A highly-customizable Hugo landing page theme powered by Hugo Blox website builder.'
     twitter: 'GetResearchDev'
   analytics:
-    google_analytics: ''
+    google_analytics: 'G-P0PB2NJ6NW'
     baidu_tongji: ''
     plausible: ''
     fathom: ''
@@ -36,7 +36,7 @@ header:
     logo:
       text: ""
       # Logo filename in `assets/media/` folder
-      filename: "logo.svg"
+      filename: "logo.png"
     button:
       enable: true
       text: "Get Started"
