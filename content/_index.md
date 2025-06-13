@@ -70,7 +70,7 @@ sections:
       subtitle: ""
       text: |-
         {{% callout warning %}}
-        Packages will be under active development throughout fall 2024. In some cases, prototypes are available for installation through github.
+        Packages will be under active development throughout 2025. In some cases, prototypes are available for installation through github.
         {{% /callout %}}
       title: Packages
     design:
@@ -118,11 +118,9 @@ sections:
     content:
       title: Get started with the probaverse.
       text: |-
-        Currently, the probaverse can be installed by each package individually, although only three packages are available as prototypes:
+        Currently, only a prototype of the probaverse is available. Install it by running in R:
         ```
-        remotes::install_github("probaverse/distionary")
-        remotes::install_github("probaverse/distplyr")
-        remotes::install_github("probaverse/famish")
+        remotes::install_github("probaverse/probaverse")
         ```
       #button:
       #  text: Find it on GitHub
