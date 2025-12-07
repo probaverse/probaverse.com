@@ -1,6 +1,6 @@
 ---
 # Display name
-title: Vincenzo Coia, PhD
+title: Vincenzo Coia
 
 # Name pronunciation (optional)
 #name_pronunciation: Chien Shiung Wu

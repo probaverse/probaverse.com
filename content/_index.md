@@ -14,42 +14,28 @@ sections:
     id: intro
     content:
       items:
-        - title: Probaverse
-          text: The probaverse is a suite of tools in R for exploring the full space of possible outcomes in an analysis. It elevates probability distributions as tangible objects that realistically represent your system.
+        - title: The modern ecosystem for probabilistic thinking.
+          text: |-
+            A cohesive set of open-source tools for working with probability distributions, uncertainty, and reproducible statistical workflows.
+   
+            Install by running
+            ```
+            install.packages("probaverse")
+            ```
+            in R (starting mid December 2025).
           # Upload image to `assets/media/` and reference the filename here
           image: probaverse-large.png
-          feature_icon: check
-          features:
-            - Build flexible distributions that capture system behaviour.
-            - Transform and refine distributions to reflect observations.
-            - Assemble multivariate models for deeper insights.
-          button:
-            text: Installation Instructions
-            url: /#get_started
+          # feature_icon: check
+          # features:
+          #   - Build flexible distributions that capture system behaviour.
+          #   - Transform and refine distributions to reflect observations.
+          #   - Assemble multivariate models for deeper insights.
+          # button:
+          #   text: Installation Instructions
+          #   url: /#get_started
     design:
       # Section background color (CSS class)
       css_class: "bg-gray-100 dark:bg-gray-900"
-
-  ## ------- SECTION: testimonials -------
-  - block: testimonials
-    content:
-      title: ""
-      text: ""
-      items:
-        - name: "Vincenzo Coia"
-          #username: '@geo'
-          # Image path relative to assets/media/ folder
-          image_filename: tweets/GitHub.png
-          role: "Statistical Data Scientist"
-          link: "https://vincenzocoia.com"
-          # Upload image to `assets/media/` and reference the filename here
-          image: "vincenzo-smiley-headshot.jpg"
-          text: "Uncertainty is inevitable in almost all complex systems, from financial markets to environmental systems to the human body. The probaverse offers a way to accept uncertainty, model it, and use those insights to make smarter, more informed decisions."
-    design:
-      spacing:
-        # Reduce bottom spacing so the testimonial appears vertically centered between sections
-        padding: ["6rem", 0, 0, 0]
-  
 
   ## ------- SECTION: packages -------
   - block: collection
@@ -68,10 +54,6 @@ sections:
       sort_by: 'Date'
       page_type: r-pak
       subtitle: ""
-      text: |-
-        {{% callout warning %}}
-        Packages will be under active development throughout 2025. In some cases, prototypes are available for installation through github.
-        {{% /callout %}}
       title: Packages
     design:
       spacing:
@@ -80,7 +62,7 @@ sections:
         - 0
         - 0
         - 0
-      view: article-list  # date-title-summary
+      view: card # card # date-title-summary  # article-list
     id: r_pkgs
 
 
@@ -113,21 +95,14 @@ sections:
   #  id: news
 
   
-  - block: cta-card
-    id: get_started
+  ## ------- SECTION: governance -------
+  - block: markdown
+    id: about
     content:
-      title: Get started with the probaverse.
+      title: 'Governance'
+      subtitle: ''
       text: |-
-        Currently, only a prototype of the probaverse is available. Install it by running in R:
-        ```
-        remotes::install_github("probaverse/probaverse")
-        ```
-      #button:
-      #  text: Find it on GitHub
-      #  url: https://github.com/probaverse/
+        Probaverse is a community-driven open ecosystem. Development is led by contributors, with principles that emphasize clarity, reproducibility, and conceptual coherence.
     design:
-      card:
-        # Card background color (CSS class)
-        css_class: "bg-primary-700" # "bg-purple-500" # "bg-primary-700"
-        css_style: ""
+      columns: '1'
 ---
