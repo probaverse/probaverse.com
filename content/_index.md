@@ -18,11 +18,10 @@ sections:
           text: |-
             A cohesive set of open-source tools for working with probability distributions, uncertainty, and reproducible statistical workflows.
    
-            Install by running
+            Install with R by running
             ```
             install.packages("probaverse")
             ```
-            in R (starting mid December 2025).
           # Upload image to `assets/media/` and reference the filename here
           image: probaverse-large.png
           # feature_icon: check
@@ -40,29 +39,30 @@ sections:
   ## ------- SECTION: packages -------
   - block: collection
     content:
-      count: 99999
-      filters:
-        author: ""
-        category: ""
-        exclude_featured: false
-        exclude_future: false
-        exclude_past: false
-        publication_type: ""
-        tag: ""
-      offset: 0
-      order: desc
-      sort_by: 'Date'
+      # count: 99999
+      # filters:
+      #   author: ""
+      #   category: ""
+      #   exclude_featured: false
+      #   exclude_future: false
+      #   exclude_past: false
+      #   publication_type: ""
+      #   tag: ""
+      # offset: 0
+      # order: desc
+      # sort_by: 'Date'
       page_type: r-pak
       subtitle: ""
       title: Packages
     design:
-      spacing:
-        padding:
-        - 10rm
-        - 0
-        - 0
-        - 0
-      view: card # card # date-title-summary  # article-list
+      view: card
+      # spacing:
+      #   padding:
+      #   - 10rm
+      #   - 0
+      #   - 0
+      #   - 0
+      #view: date-title-summary # card # date-title-summary  # article-list
     id: r_pkgs
 
 
@@ -102,7 +102,9 @@ sections:
       title: 'Governance'
       subtitle: ''
       text: |-
-        Probaverse is a community-driven open ecosystem. Development is led by contributors, with principles that emphasize clarity, reproducibility, and conceptual coherence.
+        Probaverse is a community-driven open ecosystem.
+        Development is led by contributors, with principles that emphasize
+        clarity, reproducibility, and conceptual coherence.
     design:
       columns: '1'
 ---

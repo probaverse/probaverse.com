@@ -1,6 +1,10 @@
 ---
 title: distplyr
-summary: "Distributions become alive when they can be transformed. `distplyr` lets you modify and reshape distributions—whether you're stretching, grafting, maximizing, or something else—giving you the tools to create entirely new families of distributions and expand the possibilities of your analysis."
+summary: |-
+  Distributions become alive when they can be transformed. `distplyr` lets you
+  modify and reshape distributions—whether you're stretching, grafting,
+  maximizing, or something else—giving you the tools to create entirely new
+  families of distributions and expand the possibilities of your analysis.
 #weight: 2
 date: "2025-12-07"
 #tags:
@@ -13,3 +17,10 @@ image:
   #caption: .
   focal_point: Smart
 ---
+
+Distributions become alive when they can be transformed. `distplyr` lets you
+  modify and reshape distributions—whether you're stretching, grafting,
+  maximizing, or something else—giving you the tools to create entirely new
+  families of distributions and expand the possibilities of your analysis.
+
+Learn more at [distplyr.probaverse.com](https://distplyr.probaverse.com/)
