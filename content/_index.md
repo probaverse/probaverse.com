@@ -67,32 +67,32 @@ sections:
 
 
   ## ------- SECTION: Recent Posts -------
-  #- block: collection
-  #  content:
-  #    count: 2
-  #    filters:
-  #      author: ""
-  #      category: ""
-  #      exclude_featured: false
-  #      exclude_future: false
-  #      exclude_past: false
-  #      publication_type: ""
-  #      tag: ""
-  #    offset: 0
-  #    order: desc
-  #    page_type: post
-  #    subtitle: ""
-  #    text: "Explore more about how the probaverse philosophy can transform the way you think about data analysis."
-  #    title: Probaverse Blog
-  #  design:
-  #    spacing:
-  #      padding:
-  #      - 0
-  #      - 0
-  #      - 0
-  #      - 0
-  #    view: article-grid # article date-title-summary
-  #  id: news
+  - block: collection
+    content:
+      count: 5
+      filters:
+        author: ""
+        category: ""
+        exclude_featured: false
+        exclude_future: true
+        exclude_past: false
+        publication_type: ""
+        tag: ""
+      offset: 0
+      order: desc
+      page_type: post
+      subtitle: ""
+      text: ""
+      title: Probaverse Blog
+    design:
+      spacing:
+        padding:
+        - 0
+        - 0
+        - 0
+        - 0
+      view: post-list # date-title-summary article-grid
+    id: news
 
   
   ## ------- SECTION: governance -------

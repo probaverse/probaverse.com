@@ -1,0 +1,51 @@
+{{ $item := .item }}
+{{ $summary := partial "functions/get_summary" $item }}
+{{ $summary = $summary | page.RenderString }}
+{{ $resource := partial "functions/get_featured_image.html" $item }}
+
+<article class="group py-6 first:pt-0 last:pb-0">
+  <div class="flex items-start gap-4 sm:gap-5">
+    <a href="{{ $item.RelPermalink }}" class="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-zinc-50 ring-1 ring-zinc-200 transition-colors hover:ring-blue-400 dark:bg-zinc-900 dark:ring-zinc-800 dark:hover:ring-blue-500 sm:h-20 sm:w-20" aria-label="{{ $item.Title }}">
+      {{ with $resource }}
+        {{ if ne .MediaType.SubType "gif" }}
+          {{ $thumb := .Fit "160x160" }}
+          <img
+            src="{{ $thumb.RelPermalink }}"
+            width="{{ $thumb.Width }}"
+            height="{{ $thumb.Height }}"
+            alt="{{ with $item.Params.image.alt_text }}{{ . }}{{ else }}{{ $item.Title | plainify }} featured image{{ end }}"
+            class="h-full w-full object-contain p-2"
+            loading="lazy"
+            decoding="async">
+        {{ else }}
+          <img
+            src="{{ .RelPermalink }}"
+            width="{{ .Width }}"
+            height="{{ .Height }}"
+            alt="{{ with $item.Params.image.alt_text }}{{ . }}{{ else }}{{ $item.Title | plainify }} featured image{{ end }}"
+            class="h-full w-full object-contain p-2"
+            loading="lazy"
+            decoding="async">
+        {{ end }}
+      {{ else }}
+        <div class="h-full w-full bg-gradient-to-br from-blue-500/10 to-purple-500/10"></div>
+      {{ end }}
+    </a>
+
+    <div class="min-w-0 flex-1">
+      <time class="block text-sm text-zinc-500 dark:text-zinc-400" datetime="{{ time.Format "2006-01-02" $item.Date }}">
+        {{ time.Format (site.Params.hugoblox.locale.date_format | default ":date_long") $item.Date }}
+      </time>
+
+      <h3 class="mt-1 text-lg font-semibold tracking-tight text-zinc-900 transition-colors group-hover:text-blue-600 dark:text-zinc-100 dark:group-hover:text-blue-400 sm:text-xl">
+        <a href="{{ $item.RelPermalink }}" class="hover:underline">
+          {{ $item.Title }}
+        </a>
+      </h3>
+
+      <p class="mt-2 text-sm leading-6 text-zinc-600 dark:text-zinc-400 sm:text-base">
+        {{ $summary }}
+      </p>
+    </div>
+  </div>
+</article>

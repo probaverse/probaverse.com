@@ -1,0 +1,52 @@
+---
+title: "Introducing discretes 0.1.0"
+date: '2026-04-30'
+slug: []
+categories: []
+tags: []
+image:
+  filename: discretes_logo-highres.png
+  focal_point: Smart
+  alt_text: discretes package logo
+  preview_only: true
+---
+
+
+
+<p>I kept running into the same issue working with discrete probability distributions:
+representing a potentially infinite set of outcomes, and in a way that holds up under transformation.</p>
+<p>On paper, this is straightforward. You write something like
+<span class="math display">\[\{1, 2, 3, \ldots\}\]</span>
+and move on.</p>
+<p>In R, the closest analogue is a vector, which means choosing a cutoff like:</p>
+<pre><code>1:1000</code></pre>
+<p>That makes me feel uncomfortable, especially for software that is supposed to span multiple use cases. Once a computation needs to go beyond 1000, you’re either left with failed functionality, or ending up needing a large, unwieldy vector.</p>
+<p>The problem would be easy if it only ever involved integers.
+But as soon as you apply a transformation like inversions and combinations, the discrete values become harder to track.
+For example, invert our friend <span class="math inline">\(\{1, 2, 3, \ldots, \}\)</span> and you get
+<span class="math display">\[\left\{1, \frac{1}{2}, \frac{1}{3}, \ldots, \right\}.\]</span>
+This is still a discrete set, but it no longer behaves like something you can index in order starting from a minimum. The values accumulate near zero (a “sink”) and there is no next element greater than 0.</p>
+<p>The <strong>discretes</strong> package came out of trying to work with that structure directly, without forcing it into a finite representation first. It encodes the entire series by the rule that generates the series, and allows you to traverse the series and further manipulate them. You can also know if there are any sinks, and where they are.</p>
+<p>Now <span class="math inline">\(\{1, 2, 3, \ldots\}\)</span> gets its own representation:</p>
+<pre class="r"><code>library(discretes)
+x &lt;- natural1()
+x</code></pre>
+<pre><code>## Integer series of length Inf:
+## 1, 2, 3, 4, 5, 6, ...</code></pre>
+<p>Inversion works as you’d expect it to. What are the previous 5 values in the inverse series going backwards from 1?</p>
+<pre class="r"><code>y &lt;- 1 / natural1()
+prev_discrete(y, from = 1, n = 5)</code></pre>
+<pre><code>## Loading required namespace: testthat</code></pre>
+<pre><code>## [1] 0.5000000 0.3333333 0.2500000 0.2000000 0.1666667</code></pre>
+<p>This inverted series indeed has a sink at 0:</p>
+<pre class="r"><code>has_sink_at(y, 0)</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<p>Numeric series are intended to operate like a numeric vector where possible, sorted from smallest to largest, and with no duplicates.
+Perhaps the best example of this is indexing.</p>
+<pre class="r"><code>x[1]</code></pre>
+<pre><code>## [1] 1</code></pre>
+<p>While the above natural numbers have a well-defined “first” value, the inverse series does not, and indexing behaves like atomic vectors would:</p>
+<pre class="r"><code>y[1]</code></pre>
+<pre><code>## [1] NA</code></pre>
+<p>The discretes package is now avaialable on CRAN; learn more at its homepage, <a href="https://discretes.netlify.app/" class="uri">https://discretes.netlify.app/</a>.
+This is great news for the <a href="https://probaverse.com">probaverse project</a> because explicit support for discrete (and mixed!) probability distributions becomes possible. I hope to see this functionality rolled out in the coming months, but progress on that work will depend on future funding.</p>

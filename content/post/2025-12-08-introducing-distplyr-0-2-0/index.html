@@ -1,0 +1,52 @@
+---
+title: "Introducing distplyr 0.2.0"
+date: '2025-12-08'
+slug: []
+categories: []
+tags: []
+image:
+  filename: distplyr-2521x2922.png
+  focal_point: Smart
+  alt_text: distplyr package logo
+  preview_only: true
+---
+
+
+
+<p>When I was modelling streamflow for the Coldwater River in British Columbia, I needed to combine distributions for rainfall-driven flow and snowmelt-driven flow. In that case, one useful operation was to take the distribution of whichever component was larger.</p>
+<p>That kind of problem is exactly why <code>distplyr</code> exists.</p>
+<p>Standard named distributions like Normal, Poisson, and Gumbel are useful starting points, but they usually are not enough for real modelling work. In practice, we often need to transform distributions, combine them, or modify particular features such as point mass or hazard. Until now, doing that usually meant writing bespoke code for each case.</p>
+<p>In fact, that need was one of the original motivations for the <a href="https://probaverse.com">probaverse project</a>, which at the time began as a single package called <code>distplyr</code>.</p>
+<p>Fast forward 5 years, and <a href="https://distionary.probaverse.com/">distionary</a> now handles the distribution object itself, freeing <a href="https://distplyr.probaverse.com/">distplyr</a> to focus on verbs for manipulating distributions.</p>
+<p>Here is a quick look at the idea:</p>
+<pre class="r"><code>library(distionary)
+library(distplyr)
+
+x &lt;- dst_norm(0, 1)
+y &lt;- dst_exp(1)
+
+# The distribution of the larger of two draws
+plot(maximise(x, y))</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-1-1.png" alt="" width="672" /></p>
+<pre class="r"><code># A mixture distribution built from two components
+plot(mix(x, y), n = 1000)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-1-2.png" alt="" width="672" /></p>
+<p>The nice part is that these are still ordinary distribution objects, so you can keep working with them as distributions:</p>
+<pre class="r"><code>enframe_quantile(mix(x, y), at = c(0.25, 0.5, 0.75))</code></pre>
+<pre><code>## # A tibble: 3 × 2
+##    .arg quantile
+##   &lt;dbl&gt;    &lt;dbl&gt;
+## 1  0.25 1.16e-10
+## 2  0.5  4.14e- 1
+## 3  0.75 1.04e+ 0</code></pre>
+<pre class="r"><code>mean(maximise(x, y))</code></pre>
+<pre><code>## [1] 1.160521</code></pre>
+<p>This 0.2.0<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a> release is an inaugural one for the modern <code>distplyr</code>: a package devoted specifically to distribution manipulation, built on top of the distribution infrastructure now provided by <code>distionary</code>.</p>
+<p>There is still a lot more to add. Planned verbs include <code>compress_mass()</code>, <code>graft_*()</code> and <code>slice_*()</code>, <code>inflate_hazard()</code>, <code>discretize()</code>, and more. Even so, this release already makes it much easier to express modelling ideas directly in code, rather than rebuilding one-off distribution logic each time. Maybe I’m biased, but this is exactly the kind of tooling I have wanted for years, and I’m excited to keep building it out.</p>
+<p>If you want to learn more about the broader project, take a look at the <a href="https://probaverse.com">probaverse home page</a>. The probaverse project is ambitious, and there is a lot more I would like to build, but progress on that work will depend on future funding.</p>
+<div class="footnotes footnotes-end-of-document">
+<hr />
+<ol>
+<li id="fn1"><p><code>distplyr</code> version 0.1.0 was never released to CRAN, and was based on an earlier, less consistent representation of probability distributions.<a href="#fnref1" class="footnote-back">↩︎</a></p></li>
+</ol>
+</div>
