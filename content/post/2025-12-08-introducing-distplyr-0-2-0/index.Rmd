@@ -3,7 +3,12 @@ title: "Introducing distplyr 0.2.0"
 date: '2025-12-08'
 slug: []
 categories: []
-tags: []
+tags:
+- probaverse
+- R
+- CRAN
+- probability distributions
+- distribution manipulation
 image:
   filename: distplyr-2521x2922.png
   focal_point: Smart

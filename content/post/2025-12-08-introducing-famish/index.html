@@ -1,0 +1,106 @@
+---
+title: "Introducing famish 0.2.0"
+date: '2025-12-08'
+slug: []
+categories: []
+tags:
+- probaverse
+- R
+- CRAN
+- probability distributions
+- distribution fitting
+- quantiles
+image:
+  filename: famish-1298x1452.png
+  focal_point: Smart
+  alt_text: famish package logo
+  preview_only: true
+---
+
+
+
+<p>In the release of <a href="https://probaverse.com/post/2025-12-08-introducing-distplyr-0-2-0/">distplyr</a>, I wrote about needing to modify probability distributions to make them realistic for applications. Once distplyr made that possible along with <a href="https://distionary.probaverse.com/">distionary</a>, I still needed to tune those distributions based on data.</p>
+<p>That means estimation. It also means being able to assess how well the fitted distributions actually match the data, especially at the quantiles that matter for decisions.</p>
+<p>And because that demand came directly from projects, we needed the code …yesterday. So I wrote a few quick functions that would later become the famish package.</p>
+<div id="famish-and-families" class="section level2">
+<h2>famish and “families”</h2>
+<p>I chose the name “famish” because it suggests reducing a <strong>fam</strong>ily of distributions down to either a smaller family, or all the way to a fully resolved distribution.</p>
+<p>That naming also points to an important conceptual difference. A <em>distribution</em> has one particular CDF, one particular mean, and so on.
+A <em>family</em> of distributions contains multiple distributions, indexed by parameters:
+the Normal family, for example, can be indexed by its mean and standard deviation.
+The famish package is about taking that family-level view seriously.</p>
+<p>The first CRAN release of famish is now available as a core probaverse package, and it can fit most of the distribution families currently included in distionary.<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a></p>
+</div>
+<div id="how-it-works" class="section level2">
+<h2>How it works</h2>
+<p>Here is a quick look at the workflow, fitting a couple of distributions to a dataset.</p>
+<pre class="r"><code>library(distionary)
+library(famish)
+
+x &lt;- c(4.0, 2.7, 3.5, 3.2, 7.1, 3.1, 2.5, 5.0, 2.3, 4.5, 3.0, 3.8)
+
+gev &lt;- fit_dst_gev(x)
+gev</code></pre>
+<pre><code>## Generalised Extreme Value distribution (continuous) 
+## --Parameters--
+##  location     scale     shape 
+## 3.0658476 0.7426435 0.2699160</code></pre>
+<pre class="r"><code>lp3 &lt;- fit_dst(&quot;lp3&quot;, x, method = &quot;lmom-log&quot;)
+lp3</code></pre>
+<pre><code>## Log Pearson Type III distribution (continuous) 
+## --Parameters--
+##   meanlog     sdlog      skew 
+## 1.2652738 0.3382651 1.0430967</code></pre>
+<p>These are ordinary distribution objects made by distionary, so they are immediately ready for downstream work in the broader probaverse.</p>
+<p>Next, grab a few quantiles, expressed in terms of return periods<a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a> (useful for risk modelling).</p>
+<pre class="r"><code>quantiles &lt;- enframe_return(
+  gev, lp3,
+  at = c(5, 10, 20, 50, 100),
+  arg_name = &quot;return_period&quot;,
+  fn_prefix = &quot;level&quot;
+)
+quantiles</code></pre>
+<pre><code>## # A tibble: 5 × 3
+##   return_period level_gev level_lp3
+##           &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;
+## 1             5      4.44      4.57
+## 2            10      5.37      5.58
+## 3            20      6.45      6.70
+## 4            50      8.20      8.43
+## 5           100      9.84      9.95</code></pre>
+<p>One way of checking which model has better-estimated quantiles is to calculate the <a href="https://amstat.tandfonline.com/doi/abs/10.1198/jasa.2011.r10138">quantile score</a> with the <code>quantile_score()</code> function, for which smaller scores are better. Since our quantiles are in tabular format, we’ll calculate that using a tidyverse workflow.</p>
+<pre class="r"><code>library(tidyverse)
+quantiles |&gt;
+  mutate(
+    tau = 1 - 1 / return_period,
+    gev_score = map2_dbl(
+      level_gev, tau, \(l, p) mean(quantile_score(x, l, tau = p))
+    ),
+    lp3_score = map2_dbl(
+      level_lp3, tau, \(l, p) mean(quantile_score(x, l, tau = p))
+    )
+  ) |&gt;
+  select(return_period, contains(&quot;score&quot;))</code></pre>
+<pre><code>## # A tibble: 5 × 3
+##   return_period gev_score lp3_score
+##           &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;
+## 1             5    0.416     0.416 
+## 2            10    0.309     0.312 
+## 3            20    0.190     0.182 
+## 4            50    0.0895    0.0940
+## 5           100    0.0611    0.0622</code></pre>
+<p>The two distributions might be tied, but this gives a useful starting point for investigating which distribution is better.</p>
+</div>
+<div id="whats-next" class="section level2">
+<h2>What’s next?</h2>
+<p>Like the rest of the <a href="https://probaverse.com">probaverse project</a>, famish has ambitious goals. Aside from allowing for more insight into distribution fit, I have been needing a way to create my own distribution families for the task at hand, and then estimate them directly. This would also aid in the other type of task that I’ve been needing functionality for: resolving a distribution in multiple steps. For example, I often need to restrict a family to distributions with a given mean supplied by a machine learning model, and then estimate within the remaining parameter space.</p>
+<p>That is still ahead. But even in its current form, famish already fills an important gap in the probaverse: it connects distributions to data, and makes it easier to judge whether those fitted distributions are actually useful.</p>
+<p>If you want to learn more, take a look at the <a href="https://famish.probaverse.com/">famish home page</a>. The probaverse project is ambitious, and there is a lot more I would like to build, but progress on that work will depend on future funding.</p>
+</div>
+<div class="footnotes footnotes-end-of-document">
+<hr />
+<ol>
+<li id="fn1"><p><code>famish</code> version 0.1.0 was never released to CRAN.<a href="#fnref1" class="footnote-back">↩︎</a></p></li>
+<li id="fn2"><p>You can calculate a quantile level from a return period <span class="math inline">\(T\)</span> by <span class="math inline">\(1 - 1 / T\)</span>.<a href="#fnref2" class="footnote-back">↩︎</a></p></li>
+</ol>
+</div>

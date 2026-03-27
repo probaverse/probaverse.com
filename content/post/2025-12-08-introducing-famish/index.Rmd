@@ -1,0 +1,97 @@
+---
+title: "Introducing famish 0.2.0"
+date: '2025-12-08'
+slug: []
+categories: []
+tags:
+- probaverse
+- R
+- CRAN
+- probability distributions
+- distribution fitting
+- quantiles
+image:
+  filename: famish-1298x1452.png
+  focal_point: Smart
+  alt_text: famish package logo
+  preview_only: true
+---
+
+In the release of [distplyr](https://probaverse.com/post/2025-12-08-introducing-distplyr-0-2-0/), I wrote about needing to modify probability distributions to make them realistic for applications. Once distplyr made that possible along with [distionary](https://distionary.probaverse.com/), I still needed to tune those distributions based on data.
+
+That means estimation. It also means being able to assess how well the fitted distributions actually match the data, especially at the quantiles that matter for decisions.
+
+And because that demand came directly from projects, we needed the code ...yesterday. So I wrote a few quick functions that would later become the famish package.
+
+## famish and "families"
+
+I chose the name "famish" because it suggests reducing a **fam**ily of distributions down to either a smaller family, or all the way to a fully resolved distribution.
+
+That naming also points to an important conceptual difference. A _distribution_ has one particular CDF, one particular mean, and so on.
+A _family_ of distributions contains multiple distributions, indexed by parameters:
+the Normal family, for example, can be indexed by its mean and standard deviation.
+The famish package is about taking that family-level view seriously.
+
+The first CRAN release of famish is now available as a core probaverse package, and it can fit most of the distribution families currently included in distionary.[^1]
+
+## How it works
+
+Here is a quick look at the workflow, fitting a couple of distributions to a dataset.
+
+```{r, message = FALSE}
+library(distionary)
+library(famish)
+
+x <- c(4.0, 2.7, 3.5, 3.2, 7.1, 3.1, 2.5, 5.0, 2.3, 4.5, 3.0, 3.8)
+
+gev <- fit_dst_gev(x)
+gev
+
+lp3 <- fit_dst("lp3", x, method = "lmom-log")
+lp3
+```
+
+These are ordinary distribution objects made by distionary, so they are immediately ready for downstream work in the broader probaverse.
+
+Next, grab a few quantiles, expressed in terms of return periods[^2] (useful for risk modelling).
+
+```{r}
+quantiles <- enframe_return(
+  gev, lp3,
+  at = c(5, 10, 20, 50, 100),
+  arg_name = "return_period",
+  fn_prefix = "level"
+)
+quantiles
+```
+
+One way of checking which model has better-estimated quantiles is to calculate the [quantile score](https://amstat.tandfonline.com/doi/abs/10.1198/jasa.2011.r10138) with the `quantile_score()` function, for which smaller scores are better. Since our quantiles are in tabular format, we'll calculate that using a tidyverse workflow.
+
+```{r, message = FALSE}
+library(tidyverse)
+quantiles |>
+  mutate(
+    tau = 1 - 1 / return_period,
+    gev_score = map2_dbl(
+      level_gev, tau, \(l, p) mean(quantile_score(x, l, tau = p))
+    ),
+    lp3_score = map2_dbl(
+      level_lp3, tau, \(l, p) mean(quantile_score(x, l, tau = p))
+    )
+  ) |>
+  select(return_period, contains("score"))
+```
+
+The two distributions might be tied, but this gives a useful starting point for investigating which distribution is better.
+
+## What's next?
+
+Like the rest of the [probaverse project](https://probaverse.com), famish has ambitious goals. Aside from allowing for more insight into distribution fit, I have been needing a way to create my own distribution families for the task at hand, and then estimate them directly. This would also aid in the other type of task that I've been needing functionality for: resolving a distribution in multiple steps. For example, I often need to restrict a family to distributions with a given mean supplied by a machine learning model, and then estimate within the remaining parameter space.
+
+That is still ahead. But even in its current form, famish already fills an important gap in the probaverse: it connects distributions to data, and makes it easier to judge whether those fitted distributions are actually useful.
+
+If you want to learn more, take a look at the [famish home page](https://famish.probaverse.com/). The probaverse project is ambitious, and there is a lot more I would like to build, but progress on that work will depend on future funding.
+
+[^1]: `famish` version 0.1.0 was never released to CRAN.
+
+[^2]: You can calculate a quantile level from a return period $T$ by $1 - 1 / T$.

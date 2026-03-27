@@ -4,7 +4,12 @@ author: ~
 date: '2025-12-01'
 slug: []
 categories: []
-tags: []
+tags:
+- probaverse
+- R
+- CRAN
+- probability distributions
+- distribution objects
 image:
   filename: distionary-2521x2922.png
   focal_point: Smart
