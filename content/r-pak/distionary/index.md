@@ -7,8 +7,8 @@ summary: |-
   and customizing your own distributions and evaluation methods.
 #weight: 1
 date: "2025-12-07"
-#tags:
-#- R
+tags:
+  - probaverse-core
 #date: "2016-04-27T00:00:00Z"
 
 # Optional external URL for project (replaces project detail page).

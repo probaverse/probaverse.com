@@ -7,8 +7,8 @@ summary: |-
   families of distributions and expand the possibilities of your analysis.
 #weight: 2
 date: "2025-12-07"
-#tags:
-#- R
+tags:
+  - probaverse-core
 
 # Optional external URL for project (replaces project detail page).
 links: [{type: site, url: https://distplyr.probaverse.com/}]

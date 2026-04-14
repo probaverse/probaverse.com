@@ -7,8 +7,8 @@ summary: |-
   distributions, creating a more nuanced picture of interconnected data.
 #weight: 4
 date: "2025-12-06"
-#tags:
-#- R
+tags:
+  - probaverse-upcoming
 
 # Optional external URL for project (replaces project detail page).
 links: [{type: site, url: https://couple.probaverse.com/}]

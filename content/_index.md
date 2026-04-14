@@ -4,107 +4,92 @@ date: 2023-10-24
 type: landing
 
 design:
-  # Default section spacing
   spacing: "6rem"
 
 sections:
-
-  ## ------- SECTION: slogan -------
   - block: cta-image-paragraph
     id: intro
     content:
       items:
-        - title: The modern ecosystem for probabilistic thinking.
+        - title: "The Probaverse Project"
           text: |-
-            A cohesive set of open-source tools for working with probability distributions, uncertainty, and reproducible statistical workflows.
-   
-            Install with R by running
-            ```
+            **An open-source ecosystem for probabilistic thinking.**
+
+            Probaverse is a community-driven effort to rethink how we work with probability distributions, uncertainty, and reproducible statistical workflows.
+
+            At its core is a simple idea: distributions should be programmable objects—composable, transformable, and grounded in real-world data.
+
+            The project is evolving, with new tools, ideas, and patterns emerging over time.
+
+            Install with R:
+
+            ```r
             install.packages("probaverse")
             ```
-          # Upload image to `assets/media/` and reference the filename here
           image: probaverse-large.png
-          # feature_icon: check
-          # features:
-          #   - Build flexible distributions that capture system behaviour.
-          #   - Transform and refine distributions to reflect observations.
-          #   - Assemble multivariate models for deeper insights.
-          # button:
-          #   text: Installation Instructions
-          #   url: /#get_started
     design:
-      # Section background color (CSS class)
       css_class: "bg-gray-100 dark:bg-gray-900"
 
-  ## ------- SECTION: packages -------
   - block: collection
+    id: packages
     content:
-      # count: 99999
-      # filters:
-      #   author: ""
-      #   category: ""
-      #   exclude_featured: false
-      #   exclude_future: false
-      #   exclude_past: false
-      #   publication_type: ""
-      #   tag: ""
-      # offset: 0
-      # order: desc
-      # sort_by: 'Date'
+      count: 0
+      order: asc
       page_type: r-pak
+      sort_by: Title
       subtitle: ""
       title: Packages
-    design:
-      view: card
-      # spacing:
-      #   padding:
-      #   - 10rm
-      #   - 0
-      #   - 0
-      #   - 0
-      #view: date-title-summary # card # date-title-summary  # article-list
-    id: r_pkgs
-
-
-  ## ------- SECTION: Recent Posts -------
-  - block: collection
-    content:
-      count: 5
-      filters:
-        author: ""
-        category: ""
-        exclude_featured: false
-        exclude_future: true
-        exclude_past: false
-        publication_type: ""
-        tag: ""
-      offset: 0
-      order: desc
-      page_type: post
-      subtitle: ""
-      text: ""
-      title: Probaverse Blog
-    design:
-      spacing:
-        padding:
-        - 0
-        - 0
-        - 0
-        - 0
-      view: post-list # date-title-summary article-grid
-    id: news
-
-  
-  ## ------- SECTION: governance -------
-  - block: markdown
-    id: about
-    content:
-      title: 'Governance'
-      subtitle: ''
       text: |-
-        Probaverse is a community-driven open ecosystem.
-        Development is led by contributors, with principles that emphasize
-        clarity, reproducibility, and conceptual coherence.
+        The probaverse is organized around a coherent workflow:
+        define distributions, transform them, fit them to data, and extend to multivariate systems.
+      filters:
+        tag: probaverse-core
     design:
-      columns: '1'
+      view: package-list
+      columns: "1"
+
+  - block: collection
+    id: packages-upcoming
+    content:
+      count: 0
+      order: asc
+      page_type: r-pak
+      sort_by: Title
+      subtitle: ""
+      title: Upcoming
+      filters:
+        tag: probaverse-upcoming
+    design:
+      view: package-list
+      columns: "1"
+
+  - block: markdown
+    id: the-project
+    content:
+      title: "The Project"
+      text: |-
+        Probaverse is an open, evolving project built around a shared set of principles:
+
+        - **Clarity** — statistical ideas should be explicit and understandable
+        - **Composability** — complex models should be built from simple parts
+        - **Reproducibility** — workflows should be transparent and repeatable
+        - **Extensibility** — users should be able to define and share their own tools
+
+        The project welcomes contributions, ideas, and discussion as it grows.
+    design:
+      columns: "1"
+
+  - block: markdown
+    id: get-involved
+    content:
+      title: "Get involved"
+      text: |-
+        - Explore the [packages and documentation](#packages)
+        - Read updates on the [Probaverse blog](/post/)
+        - Follow development and contribute on [GitHub](https://github.com/probaverse)
+        - Share ideas, use cases, or extensions
+
+        Probaverse is not just a set of tools—it is an ongoing effort to build a better way to work with uncertainty.
+    design:
+      columns: "1"
 ---

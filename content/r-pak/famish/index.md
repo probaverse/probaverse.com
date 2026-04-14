@@ -7,8 +7,8 @@ summary: |-
   best-fitting distribution for your needs.
 #weight: 3
 date: "2025-12-07"
-#tags:
-#- R
+tags:
+  - probaverse-core
 
 # Optional external URL for project (replaces project detail page).
 links: [{type: site, url: https://famish.probaverse.com/}]
