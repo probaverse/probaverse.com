@@ -119,9 +119,11 @@ hugoblox:
     notice: "© {year} {name}. This work is licensed under {license}"
     license:
       type: cc                          # cc | all_rights | custom
-      allow_derivatives: false
-      share_alike: true
-      allow_commercial: false
+      # CC BY 4.0: commercial use and derivatives allowed; no share-alike requirement
+      enable: true
+      allow_derivatives: true
+      share_alike: false
+      allow_commercial: true
 
   # ────────────────────────────────────────────────────────────────────────────
   # SEO

@@ -1,0 +1,72 @@
+---
+title: "Introducing probaverse 0.1.0"
+date: '2025-12-14'
+slug: introducing-probaverse-0-1-0
+categories: []
+tags:
+- probaverse
+- R
+- CRAN
+- probability distributions
+- distribution objects
+- distribution manipulation
+image:
+  filename: probaverse-1716x1997.png
+  focal_point: Smart
+  alt_text: probaverse package logo
+  preview_only: true
+---
+
+
+
+<p>It wasn’t supposed to be a “-verse”. I just needed to be able to manipulate some probability distributions. But then three clearly different tasks needed special handling.</p>
+<ul>
+<li>I needed to define the distribution object in the first place. Out came distionary.</li>
+<li>Manipulation of these distributions could then be handled by distplyr.</li>
+<li>The need to fit and tune distributions to data quickly followed, and so did famish.</li>
+</ul>
+<p>And, to tie them all together, probaverse. If you’re familiar with how the tidyverse package loads the core tidyverse packages, probaverse is similar: it’s a meta-package whose purpose is simply to load… well, the probaverse packages.</p>
+<p>So, all you have to do is</p>
+<pre class="r"><code>library(probaverse)</code></pre>
+<pre><code>## ── Attaching core probaverse packages ──────────────────────────────────────────
+## ✔ distionary   0.1.0   Create and Evaluate Probability Distributions
+## ✔ distplyr     0.2.0   Manipulate and Combine Probability Distributions
+## ✔ famish       0.2.0   Flexibly Tune Families of Probability Distributions</code></pre>
+<p>…and the whole suite is loaded.</p>
+<p>That one call matters because the packages underneath are meant to feel like one toolkit.</p>
+<p>If you can’t tell, probaverse takes inspiration from tidyverse. Aside from the obvious similarities in some of the package names (tidyverse → probaverse, dplyr → distplyr), probaverse also strives to follow the <a href="https://design.tidyverse.org/unifying.html">tidyverse design principles</a>.</p>
+<p>It shares the four guiding principles of being human centered, consistent (between packages), composable (between parts), and inclusive (to diverse groups of people).</p>
+<p>For example, take the waiting times between eruptions from the built-in <code>faithful</code> data frame:</p>
+<pre class="r"><code>x &lt;- faithful$waiting</code></pre>
+<p>We can use distionary to create an empirical (data-based) distribution, and famish to fit a gamma distribution to the data.</p>
+<pre class="r"><code>d1 &lt;- dst_empirical(x)
+d2 &lt;- fit_dst_gamma(x)</code></pre>
+<pre><code>## Loading required namespace: testthat</code></pre>
+<p>Watching Old Faithful through six successive eruptions gives five inter-eruption waiting times; the <strong>shortest</strong> among them is the minimum of five draws from the model. In distplyr, <code>minimize(..., draws = 5)</code> is the distribution of that quantity.</p>
+<pre class="r"><code>m1 &lt;- minimize(d1, draws = 5)
+m2 &lt;- minimize(d2, draws = 5)</code></pre>
+<p>You can calculate the quartiles to get a sense of the inter-quartile range and the median.</p>
+<pre class="r"><code>enframe_quantile(m1, m2, at = c(0.25, 0.50, 0.75))</code></pre>
+<pre><code>## # A tibble: 3 × 3
+##    .arg quantile_m1 quantile_m2
+##   &lt;dbl&gt;       &lt;dbl&gt;       &lt;dbl&gt;
+## 1  0.25          48        49.9
+## 2  0.5           52        55.3
+## 3  0.75          57        60.6</code></pre>
+<p>Or just get the means:</p>
+<pre class="r"><code>mean(m1)</code></pre>
+<pre><code>## [1] 54.16665</code></pre>
+<pre class="r"><code>mean(m2)</code></pre>
+<pre><code>## [1] 55.27021</code></pre>
+<p>Check out a quick plot comparing the CDF of both models.</p>
+<pre class="r"><code>plot(m1, n = 1000)
+plot(m2, add = TRUE, n = 1000, col = &quot;red&quot;, lty = 2)
+legend(
+  &quot;bottomright&quot;,
+  legend = c(&quot;empirical&quot;, &quot;gamma&quot;),
+  col = c(&quot;black&quot;, &quot;red&quot;),
+  lty = c(1, 2)
+)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-7-1.png" alt="" width="672" /></p>
+<p>This is a simple example, but you can go much further with the suite: fitting, evaluating, and transforming distributions, among other workflows. Some of these will be featured in future blog posts. Consider, for example, using it to fit a probabilistic machine learning model.</p>
+<p>Currently, probaverse focuses on univariate distributions. The roadmap includes multivariate distributions (including construction via copulas), richer tooling for empirical distributions such as kernel density estimation, and user-defined parametric families so custom models can be specified and fitted alongside built-in choices like Normal, Poisson, and Gumbel.</p>
