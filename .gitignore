@@ -17,6 +17,9 @@ resources/
 # Hugo build lock
 .hugo_build.lock
 
+# Local copy of Hugo modules (from `hugo mod vendor`; not required for Netlify)
+_vendor/
+
 # Hugo stats
 hugo_stats.json
 
