@@ -1,7 +1,7 @@
 ---
 title: couple
 summary: |-
-  [Development in 2026] Complex systems often demand insight into
+  [Planned multivariate ecosystem] Complex systems often demand insight into
   multiple variables and their relationships. `couple` enables you to construct
   realistic multivariate distributions by combining copulas and univariate
   distributions, creating a more nuanced picture of interconnected data.
@@ -18,7 +18,7 @@ image:
   focal_point: Smart
 ---
 
-[Development in 2026] Complex systems often demand insight into
+[Planned multivariate ecosystem] Complex systems often demand insight into
   multiple variables and their relationships. `couple` enables you to construct
   realistic multivariate distributions by combining copulas and univariate
   distributions, creating a more nuanced picture of interconnected data.
