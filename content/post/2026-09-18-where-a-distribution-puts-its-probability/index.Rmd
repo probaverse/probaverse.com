@@ -1,0 +1,110 @@
+---
+title: "Where a distribution puts its probability"
+date: '2026-09-18'
+slug: where-a-distribution-puts-its-probability
+categories: []
+tags:
+- probaverse
+- R
+- CRAN
+- probability distributions
+- distribution objects
+- distribution manipulation
+image:
+  filename: probaverse-1716x1997.png
+  focal_point: Smart
+  alt_text: probaverse package logo
+  preview_only: true
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(message = FALSE, warning = FALSE)
+```
+
+Three releases went to CRAN this week, and they are really one idea.
+
+- **distionary 0.2.0** gives every distribution a *support*.
+- **distplyr 0.3.0** rebuilds every manipulation verb on top of supports.
+- **probaverse 0.1.1** pins the suite so that installing it gets you the matching set.
+
+Here is the idea, and why I think it is the most useful thing to land in the probaverse so far.
+
+## A distribution knew *how*, but not *where*
+
+A distionary distribution has always known *how* to be evaluated. Hand it a number and it hands back a CDF value, a density, a quantile. What it did not know was *where* it puts its probability.
+
+For the built-in families that hardly mattered, because each one arrives with its own formulas. The trouble starts when a distribution is not one of the built-ins --- when you have defined it yourself, or transformed one into something new. Then anything the package has to *derive*, like a quantile it must solve for or a moment it must integrate, needs some assumption about where the probability sits. The assumption was: continuous, spread smoothly over an interval.
+
+That is a fine assumption right up until it isn't. Think about daily rainfall. Most days are dry, so the record is mostly zeros. This is not a continuous distribution that happens to have a small mean; it is a lump of probability sitting exactly on zero, with a continuous curve off to the right of it. The same shape of problem shows up in an insurance portfolio where most policies never claim, or a river reach that stops flowing in late summer.
+
+That lump is the whole difficulty. Ask a continuity assumption for the median and it goes hunting for the place where the CDF crosses 0.5, sliding around a jump where no such crossing exists.
+
+## Supports
+
+So a distribution now carries a support: the set where its probability lives, with atoms tracked separately from continuous regions.
+
+```{r}
+library(probaverse)
+support(dst_pois(3))
+```
+
+Those atoms are not a vector that I quietly cut off at some large number. It is the entire infinite set, described by the rule that generates it, which is what the [discretes package](/post/2026-03-31-introducing-discretes-0-1-0/) was built to make possible.
+
+Now for the rainfall problem. Say 40% of days are dry and the wet days follow an exponential distribution. The new `.support` argument is how you say that out loud:
+
+```{r}
+p <- 0.4
+rain <- distribution(
+  cdf = function(x) ifelse(x < 0, 0, p + (1 - p) * pexp(x, rate = 0.2)),
+  density = function(x) ifelse(x <= 0, 0, (1 - p) * dexp(x, rate = 0.2)),
+  pmf = function(x) ifelse(x == 0, p, 0),
+  .support = mixed(discrete = 0, continuous = c(0, Inf)),
+  .name = "Zero-inflated Exponential"
+)
+support(rain)
+```
+
+## So what?
+
+The payoff is that the derived quantities stop being approximate, or stop erroring outright.
+
+Quantiles land *on* the atom rather than near it, along a path that used to raise an error outright for a discrete or mixed distribution. Any probability up to 0.4 is answered with exactly zero, because that is the honest answer --- the driest 40% of days had no rain at all:
+
+```{r}
+eval_quantile(rain, at = c(0.2, 0.4, 0.5, 0.9))
+```
+
+Moments work too, by summing over the atoms and integrating over the regions --- a calculation the package simply did not do for anything but a continuous distribution before:
+
+```{r}
+mean(rain)
+variance(rain)
+```
+
+And because distplyr 0.3.0 reads and rewrites supports rather than guessing at them, a manipulated distribution still knows where it lives. Two of the new verbs, `trim_left()` and `graft_right()`, take a `knot` argument that decides what happens to mass sitting exactly on the cut point --- which is precisely the question the old machinery could not even ask. Trim away the dry days and what remains is no longer mixed at all:
+
+```{r}
+wet <- trim_left(rain, of = 0, knot = "discard")
+support(wet)
+mean(wet)
+```
+
+A mean of 5 mm on wet days, from a distribution averaging 3 mm over all days. Same model, and now both numbers are available from it without my having to take the thing apart by hand.
+
+## One install, one working set
+
+The catch with a suite of packages is that a good idea in one of them is a breaking change in the others. distplyr 0.3.0 genuinely requires distionary 0.2.0; there is no meaningful way to run the new verbs on the old distribution object. So probaverse 0.1.1 does something dull and worthwhile: it records minimum versions for the packages it loads.
+
+```r
+install.packages("probaverse")
+```
+
+That now brings a library with a mixed-up suite in it back up to a set that works together, rather than leaving you to find out which pair disagrees.
+
+## What this opens up
+
+When distionary [went to CRAN](/post/2025-12-01-distionary-launch/), I wrote that explicit support for discrete and mixed distributions was coming soon. This is that, and it took a detour through a package about infinite sets to get here.
+
+It matters beyond tidier quantiles. Real systems are lumpy. A flow that is sometimes zero, a loss that is usually nothing, a measurement that piles up at a detection limit --- these are mixed distributions, and until now the probaverse could represent them but could not reliably compute with them. Now the lump is a stated fact about the distribution that every routine can read, including routines I have not written yet.
+
+Next on the roadmap: multivariate distributions, and distribution families rather than single distributions. As always, how fast that arrives depends on funding.
