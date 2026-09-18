@@ -64,6 +64,8 @@ rain <- distribution(
 support(rain)
 ```
 
+Worth being careful about what went in there. A mixed distribution has no density of its own --- you cannot differentiate a jump --- so the `density` argument carries the *continuous part* alone, the `pmf` carries the mass sitting on zero, and the support is what tells the package how the two fit together. That division is the whole trick: neither piece is the distribution, and previously there was nowhere to write down how they joined.
+
 ## So what?
 
 The payoff is that the derived quantities stop being approximate, or stop erroring outright.

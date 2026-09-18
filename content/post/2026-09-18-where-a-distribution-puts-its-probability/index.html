@@ -55,6 +55,7 @@ support(rain)</code></pre>
 ## 0
 ## -- continuous --
 ## [0, Inf]</code></pre>
+<p>Worth being careful about what went in there. A mixed distribution has no density of its own — you cannot differentiate a jump — so the <code>density</code> argument carries the <em>continuous part</em> alone, the <code>pmf</code> carries the mass sitting on zero, and the support is what tells the package how the two fit together. That division is the whole trick: neither piece is the distribution, and previously there was nowhere to write down how they joined.</p>
 <h2 id="so-what">So what?</h2>
 <p>The payoff is that the derived quantities stop being approximate, or stop erroring outright.</p>
 <p>Quantiles land <em>on</em> the atom rather than near it, along a path that used to raise an error outright for a discrete or mixed distribution. Any probability up to 0.4 is answered with exactly zero, because that is the honest answer — the driest 40% of days had no rain at all:</p>
