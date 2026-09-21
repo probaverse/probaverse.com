@@ -21,51 +21,69 @@ image:
 knitr::opts_chunk$set(message = FALSE, warning = FALSE)
 ```
 
-Three releases went to CRAN this week, and they are really one idea, plus a new verb: the graft.
+Three probaverse packages went to CRAN this week. Behind them is one idea, and one new verb.
 
-- **distionary 0.2.0** gives every distribution a *support*.
-- **distplyr 0.3.0** rebuilds every manipulation verb on top of supports.
-- **probaverse 0.1.1** pins the suite so that installing it gets you the matching set.
+- **distionary 0.2.0** --- a distribution now says where it keeps its probability.
+- **distplyr 0.3.0** --- every verb understands that.
+- **probaverse 0.1.1** --- installs the matching set.
 
-## A distribution knew *how*, but not *where*
+## The idea
 
-A distionary distribution has always known *how* to be evaluated. Hand it a number and it hands back a CDF value, a density, a quantile. What it did not know was *where* it puts discrete probability.
+Probability comes in two forms. Some of it sits on single points. Some of it is spread over a range.
 
-For the built-in families, that hardly mattered, because each one arrives with its own formulas. The trouble starts when a distribution is not one of the built-ins --- when you have defined it yourself, or transformed one into something new. Then anything the package has to *derive*, like a quantile it must solve for, needs some assumption about where discrete probability sits. The assumption was: continuous, spread smoothly over an interval.
+A distribution used to know only how to answer questions. Now it also knows which of those two forms it is made of, and where. That record is called its **support**. The single points are called **atoms**.
 
-So a distribution now carries a support: the set where its probability lives, with atoms tracked separately from continuous regions.
+A Poisson distribution keeps its probability on 0, 1, 2, and so on:
 
 ```{r}
 library(probaverse)
 support(dst_pois(3))
 ```
 
-Those atoms are not a vector that I quietly cut off at some large number. It is the entire infinite set, described by the rule that generates it, which is what the [discretes package](/post/2026-03-31-introducing-discretes-0-1-0/) was built to make possible.
+That list is not cut off at some large number. It is the whole infinite set, handled by the [discretes package](/post/2026-03-31-introducing-discretes-0-1-0/).
 
-The payoff arrives as soon as mass and density share a distribution. Mix a point mass at zero with an exponential --- 40% dry days, rain otherwise --- and the quantiles land on zero exactly when they should, rather than "roughly zero":
+## Why it matters
+
+A distribution can have both forms at once. Take rainfall: no rain on 40% of days, and an exponential amount on the rest.
 
 ```{r}
 rain <- mix(dst_degenerate(0), dst_exp(rate = 0.2), weights = c(0.4, 0.6))
 support(rain)
+```
+
+One atom, sitting on zero. Then a range above it.
+
+Now ask for some quantiles. Four days in ten are dry, so anything up to 0.4 should come back as exactly zero:
+
+```{r}
 eval_quantile(rain, at = c(0.3, 0.4, 0.5))
 ```
 
-## Grafting a tail onto history
+Exactly zero, not nearly zero. That is the part that used to be hard. Without a support, the package assumed probability was spread smoothly, so it went looking for the place where the curve crossed 0.4. There is no such place. The curve jumps straight over it.
 
-The more interesting case is the new graft verbs, where supports really earn themselves.
+## The graft
 
-Historical Simulation --- using the observed record directly as the distribution --- is about the most honest thing you can do with data, right up until you ask it about something rarer than anything you have seen. Here are the hundred annual flows of the Nile:
+The simplest way to turn data into a distribution is to use the data itself, giving every observation an equal share. This is sometimes called Historical Simulation.
+
+Here are a hundred years of Nile flows:
 
 ```{r}
 x <- as.numeric(Nile)
 flows <- dst_empirical(x)
 vtype(flows)
+```
+
+Discrete: one atom per observation.
+
+Now ask it about a flood so rare it shows up once in a thousand years:
+
+```{r}
 eval_quantile(flows, at = 0.999)
 ```
 
-Discrete, with an atom on every observation --- and its answer to a one-in-a-thousand question is just the largest flood on record. It has nowhere else to put one.
+That is simply the largest flood on record. The data has nowhere else to put one.
 
-`graft_right()` replaces the top of a distribution with a model of the top. Fit a generalised Pareto to the exceedances over 1150 with famish, then graft it on. The new `knot` argument decides which side the flow sitting exactly on 1150 goes to, and by default it stays with the body:
+`graft_right()` swaps the top of a distribution for a model of the top. Below the cut, the real data. Above it, a fitted tail --- here a generalised Pareto, fitted with famish to the floods above 1150.
 
 ```{r}
 u <- 1150
@@ -73,29 +91,31 @@ flood <- graft_right(flows, of = u, tail_excess = fit_dst_gp(x[x > u] - u))
 flood
 ```
 
-The result is mixed, and the support says precisely what happened to it: the observations below the knot survive as atoms --- including 1150 itself, listed last --- and above it there is density instead. The fitted tail came out with a negative shape, so it is bounded --- and the support is where that upper limit shows up, rather than something you work out by hand afterwards.
+The support shows both halves:
 
 ```{r}
 support(flood)
 eval_quantile(flood, at = c(0.99, 0.999))
 ```
 
-None of this is a special case that distplyr hard-codes. The verb asks the empirical distribution where its probability is, maps it, and hands back something that can answer the same question about itself.
+The atoms are the observations that survived the cut. The range after them is the fitted tail. That tail came out bounded, so the support also tells you where it stops.
 
-## One install, one working set
+And the thousand-year flood is now a number the record never contained.
 
-The catch with a suite is that a good idea in one package is a breaking change in the others: distplyr 0.3.0 genuinely requires distionary 0.2.0. So probaverse 0.1.1 does something dull and worthwhile, and records minimum versions for the packages it loads.
+## One install
+
+A good idea in one package is a breaking change in the others. distplyr 0.3.0 needs distionary 0.2.0. So probaverse 0.1.1 now records minimum versions for the packages it loads.
 
 ```r
 install.packages("probaverse")
 ```
 
-That now brings a mixed-up library back up to a set that works together, rather than leaving you to find out which pair disagrees.
+A mixed-up library comes back up to a set that works together.
 
-## What this opens up
+## What's next
 
-When distionary [went to CRAN](/post/2025-12-01-distionary-launch/), I wrote that explicit support for discrete and mixed distributions was coming soon. This is that, and it took a detour through a package about infinite sets to get here.
+When distionary [went to CRAN](/post/2025-12-01-distionary-launch/), I said that proper support for discrete and mixed distributions was coming. This is it, by way of a package about infinite sets.
 
-Real systems are lumpy. A flow that is sometimes zero, an empirical distribution that is nothing but discrete points --- until now the probaverse could represent these but could not reliably compute with them. Now the lump is a stated fact about the distribution that every routine can read, including routines I have not written yet.
+Real data is lumpy. Flows that are sometimes zero, records made of nothing but discrete points. The probaverse could always describe these. Now it can compute with them.
 
-Next on the roadmap: multivariate distributions, and distribution families rather than single distributions.
+Next: multivariate distributions, and families of distributions rather than single ones.
