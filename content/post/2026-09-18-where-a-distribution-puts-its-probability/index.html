@@ -53,8 +53,7 @@ support(rain)</code></pre>
 <h2 id="the-graft">The graft</h2>
 <p>The simplest way to turn data into a distribution is to use the data itself, giving every observation an equal share. This is sometimes called Historical Simulation.</p>
 <p>Here are a hundred years of Nile flows:</p>
-<pre class="r"><code>x &lt;- as.numeric(Nile)
-flows &lt;- dst_empirical(x)
+<pre class="r"><code>flows &lt;- dst_empirical(Nile)
 vtype(flows)</code></pre>
 <pre><code>## [1] &quot;discrete&quot;</code></pre>
 <p>Discrete: one atom per observation.</p>
@@ -62,9 +61,16 @@ vtype(flows)</code></pre>
 <pre class="r"><code>eval_quantile(flows, at = 0.999)</code></pre>
 <pre><code>## [1] 1370</code></pre>
 <p>That is simply the largest flood on record. The data has nowhere else to put one.</p>
-<p><code>graft_right()</code> swaps the top of a distribution for a model of the top. Below the cut, the real data. Above it, a fitted tail — here a generalised Pareto, fitted with famish to the floods above 1150.</p>
+<p>So make a second piece to cover the part the record cannot. Take the floods above 1150, and fit a generalised Pareto to how far each one exceeded it, using famish:</p>
 <pre class="r"><code>u &lt;- 1150
-flood &lt;- graft_right(flows, of = u, tail_excess = fit_dst_gp(x[x &gt; u] - u))
+tail_fit &lt;- fit_dst_gp(Nile[Nile &gt; u] - u)
+tail_fit</code></pre>
+<pre><code>## Generalised Pareto distribution (continuous) 
+## --Parameters--
+##      scale      shape 
+## 75.0231325 -0.1522667</code></pre>
+<p>Two pieces now: the record, and a model for its top end. <code>graft_right()</code> stitches them together at 1150.</p>
+<pre class="r"><code>flood &lt;- graft_right(flows, of = u, tail_excess = tail_fit)
 flood</code></pre>
 <pre><code>## Graft distribution (mixed)
 ## --Components--
@@ -83,6 +89,16 @@ flood</code></pre>
 <pre><code>## [1] 1305.214 1405.025</code></pre>
 <p>The atoms are the observations that survived the cut. The range after them is the fitted tail. That tail came out bounded, so the support also tells you where it stops.</p>
 <p>And the thousand-year flood is now a number the record never contained.</p>
+<p>It is easier to see on the survival function, which plots the chance of exceeding each flow. The record runs out at its largest value and simply stops. The graft carries on past it.</p>
+<pre class="r"><code>plot(flood, &quot;survival&quot;, from = 456, to = 1500, n = 8001, log = &quot;y&quot;,
+     ylim = c(1e-3, 1), col = &quot;red&quot;, lty = 2, lwd = 2,
+     xlab = &quot;Annual flow&quot;, ylab = &quot;Chance of exceeding&quot;)
+plot(flows, &quot;survival&quot;, from = 456, to = 1500, n = 8001, add = TRUE, lwd = 2)
+abline(v = u, col = &quot;grey60&quot;, lty = 3)
+text(u, 1e-3, &quot; graft point&quot;, col = &quot;grey40&quot;, adj = c(0, 0), cex = 0.8)
+legend(&quot;bottomleft&quot;, legend = c(&quot;the record alone&quot;, &quot;with a grafted tail&quot;),
+       col = c(&quot;black&quot;, &quot;red&quot;), lty = c(1, 2), lwd = 2, bty = &quot;n&quot;)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/graft-survival-1.png" alt="Survival curves for Nile flows on a log scale. The empirical curve steps down and stops at the largest flow on record; the grafted curve continues past it." width="672" /></p>
 <h2 id="one-install">One install</h2>
 <p>A good idea in one package is a breaking change in the others. distplyr 0.3.0 needs distionary 0.2.0. So probaverse 0.1.1 now records minimum versions for the packages it loads.</p>
 <pre class="r"><code>install.packages(&quot;probaverse&quot;)</code></pre>

@@ -68,8 +68,7 @@ The simplest way to turn data into a distribution is to use the data itself, giv
 Here are a hundred years of Nile flows:
 
 ```{r}
-x <- as.numeric(Nile)
-flows <- dst_empirical(x)
+flows <- dst_empirical(Nile)
 vtype(flows)
 ```
 
@@ -83,11 +82,18 @@ eval_quantile(flows, at = 0.999)
 
 That is simply the largest flood on record. The data has nowhere else to put one.
 
-`graft_right()` swaps the top of a distribution for a model of the top. Below the cut, the real data. Above it, a fitted tail --- here a generalised Pareto, fitted with famish to the floods above 1150.
+So make a second piece to cover the part the record cannot. Take the floods above 1150, and fit a generalised Pareto to how far each one exceeded it, using famish:
 
 ```{r}
 u <- 1150
-flood <- graft_right(flows, of = u, tail_excess = fit_dst_gp(x[x > u] - u))
+tail_fit <- fit_dst_gp(Nile[Nile > u] - u)
+tail_fit
+```
+
+Two pieces now: the record, and a model for its top end. `graft_right()` stitches them together at 1150.
+
+```{r}
+flood <- graft_right(flows, of = u, tail_excess = tail_fit)
 flood
 ```
 
@@ -101,6 +107,19 @@ eval_quantile(flood, at = c(0.99, 0.999))
 The atoms are the observations that survived the cut. The range after them is the fitted tail. That tail came out bounded, so the support also tells you where it stops.
 
 And the thousand-year flood is now a number the record never contained.
+
+It is easier to see on the survival function, which plots the chance of exceeding each flow. The record runs out at its largest value and simply stops. The graft carries on past it.
+
+```{r graft-survival, fig.width = 7, fig.height = 4.3}
+plot(flood, "survival", from = 456, to = 1500, n = 8001, log = "y",
+     ylim = c(1e-3, 1), col = "red", lty = 2, lwd = 2,
+     xlab = "Annual flow", ylab = "Chance of exceeding")
+plot(flows, "survival", from = 456, to = 1500, n = 8001, add = TRUE, lwd = 2)
+abline(v = u, col = "grey60", lty = 3)
+text(u, 1e-3, " graft point", col = "grey40", adj = c(0, 0), cex = 0.8)
+legend("bottomleft", legend = c("the record alone", "with a grafted tail"),
+       col = c("black", "red"), lty = c(1, 2), lwd = 2, bty = "n")
+```
 
 ## One install
 
