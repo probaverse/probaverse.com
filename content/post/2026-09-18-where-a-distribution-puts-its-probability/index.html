@@ -1,0 +1,109 @@
+---
+title: "Where a distribution puts its probability"
+date: '2026-09-18'
+slug: where-a-distribution-puts-its-probability
+categories: []
+tags:
+- probaverse
+- R
+- CRAN
+- probability distributions
+- distribution objects
+- distribution manipulation
+image:
+  filename: probaverse-1716x1997.png
+  focal_point: Smart
+  alt_text: probaverse package logo
+  preview_only: true
+---
+
+
+<p>Three probaverse packages went to CRAN this week. Behind them is one idea, and one new verb.</p>
+<ul>
+<li><strong>distionary 0.2.0</strong> — a distribution now says where it keeps its probability.</li>
+<li><strong>distplyr 0.3.0</strong> — every verb understands that.</li>
+<li><strong>probaverse 0.1.1</strong> — installs the matching set.</li>
+</ul>
+<h2 id="the-idea">The idea</h2>
+<p>Probability comes in two forms. Some of it sits on single points. Some of it is spread over a range.</p>
+<p>A distribution used to know only how to answer questions. Now it also knows which of those two forms it is made of, and where. That record is called its <strong>support</strong>. The single points are called <strong>atoms</strong>.</p>
+<p>A Poisson distribution keeps its probability on 0, 1, 2, and so on:</p>
+<pre class="r"><code>library(probaverse)
+support(dst_pois(3))</code></pre>
+<pre><code>## &lt;support: discrete&gt;
+## -- atoms --
+## Integer series of length Inf:
+## 0, 1, 2, 3, 4, 5, ...</code></pre>
+<p>That list is not cut off at some large number. It is the whole infinite set, handled by the <a href="/post/2026-03-31-introducing-discretes-0-1-0/">discretes package</a>.</p>
+<h2 id="why-it-matters">Why it matters</h2>
+<p>A distribution can have both forms at once. Take rainfall: no rain on 40% of days, and an exponential amount on the rest.</p>
+<pre class="r"><code>rain &lt;- mix(dst_degenerate(0), dst_exp(rate = 0.2), weights = c(0.4, 0.6))
+support(rain)</code></pre>
+<pre><code>## &lt;support: mixed&gt;
+## -- atoms --
+## Numeric vector series of length 1:
+## 0
+## -- continuous --
+## [0, Inf]</code></pre>
+<p>One atom, sitting on zero. Then a range above it.</p>
+<p>Now ask for some quantiles. Four days in ten are dry, so anything up to 0.4 should come back as exactly zero:</p>
+<pre class="r"><code>eval_quantile(rain, at = c(0.3, 0.4, 0.5))</code></pre>
+<pre><code>## [1] 0.0000000 0.0000000 0.9116078</code></pre>
+<p>Exactly zero, not nearly zero. That is the part that used to be hard. Without a support, the package assumed probability was spread smoothly, so it went looking for the place where the curve crossed 0.4. There is no such place. The curve jumps straight over it.</p>
+<h2 id="the-graft">The graft</h2>
+<p>The simplest way to turn data into a distribution is to use the data itself, giving every observation an equal share. This is sometimes called Historical Simulation.</p>
+<p>Here are a hundred years of Nile flows:</p>
+<pre class="r"><code>flows &lt;- dst_empirical(Nile)
+vtype(flows)</code></pre>
+<pre><code>## [1] &quot;discrete&quot;</code></pre>
+<p>Discrete: one atom per observation.</p>
+<p>Now ask it about a flood so rare it shows up once in a thousand years:</p>
+<pre class="r"><code>eval_quantile(flows, at = 0.999)</code></pre>
+<pre><code>## [1] 1370</code></pre>
+<p>That is simply the largest flood on record. The data has nowhere else to put one.</p>
+<p>So make a second piece to cover the part the record cannot. Take the floods above 1150, and fit a generalised Pareto to how far each one exceeded it, using famish:</p>
+<pre class="r"><code>u &lt;- 1150
+tail_fit &lt;- fit_dst_gp(Nile[Nile &gt; u] - u)
+tail_fit</code></pre>
+<pre><code>## Generalised Pareto distribution (continuous) 
+## --Parameters--
+##      scale      shape 
+## 75.0231325 -0.1522667</code></pre>
+<p>Two pieces now: the record, and a model for its top end. <code>graft_right()</code> stitches them together at 1150.</p>
+<pre class="r"><code>flood &lt;- graft_right(flows, of = u, tail_excess = tail_fit)
+flood</code></pre>
+<pre><code>## Graft distribution (mixed)
+## --Components--
+##  distribution                           weight
+##  Finite                                 0.88  
+##  Shifted(Generalised Pareto(75, -0.15)) 0.12</code></pre>
+<p>The support shows both halves:</p>
+<pre class="r"><code>support(flood)</code></pre>
+<pre><code>## &lt;support: mixed&gt;
+## -- atoms --
+## Numeric vector series of length 76:
+## 456, 649, 676, ..., 1120, 1140, 1150
+## -- continuous --
+## [1150, 1642.71]</code></pre>
+<pre class="r"><code>eval_quantile(flood, at = c(0.99, 0.999))</code></pre>
+<pre><code>## [1] 1305.214 1405.025</code></pre>
+<p>The atoms are the observations that survived the cut. The range after them is the fitted tail. That tail came out bounded, so the support also tells you where it stops.</p>
+<p>And the thousand-year flood is now a number the record never contained.</p>
+<p>It is easier to see on the survival function, which plots the chance of exceeding each flow. The record runs out at its largest value and simply stops. The graft carries on past it.</p>
+<pre class="r"><code>plot(flood, &quot;survival&quot;, from = 456, to = 1500, n = 8001, log = &quot;y&quot;,
+     ylim = c(1e-3, 1), col = &quot;red&quot;, lty = 2, lwd = 2,
+     xlab = &quot;Annual flow&quot;, ylab = &quot;Chance of exceeding&quot;)
+plot(flows, &quot;survival&quot;, from = 456, to = 1500, n = 8001, add = TRUE, lwd = 2)
+abline(v = u, col = &quot;grey60&quot;, lty = 3)
+text(u, 1e-3, &quot; graft point&quot;, col = &quot;grey40&quot;, adj = c(0, 0), cex = 0.8)
+legend(&quot;bottomleft&quot;, legend = c(&quot;the record alone&quot;, &quot;with a grafted tail&quot;),
+       col = c(&quot;black&quot;, &quot;red&quot;), lty = c(1, 2), lwd = 2, bty = &quot;n&quot;)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/graft-survival-1.png" alt="Survival curves for Nile flows on a log scale. The empirical curve steps down and stops at the largest flow on record; the grafted curve continues past it." width="672" /></p>
+<h2 id="one-install">One install</h2>
+<p>A good idea in one package is a breaking change in the others. distplyr 0.3.0 needs distionary 0.2.0. So probaverse 0.1.1 now records minimum versions for the packages it loads.</p>
+<pre class="r"><code>install.packages(&quot;probaverse&quot;)</code></pre>
+<p>A mixed-up library comes back up to a set that works together.</p>
+<h2 id="whats-next">What’s next</h2>
+<p>When distionary <a href="/post/2025-12-01-distionary-launch/">went to CRAN</a>, I said that proper support for discrete and mixed distributions was coming. This is it, by way of a package about infinite sets.</p>
+<p>Real data is lumpy. Flows that are sometimes zero, records made of nothing but discrete points. The probaverse could always describe these. Now it can compute with them.</p>
+<p>Next: multivariate distributions, and families of distributions rather than single ones.</p>
