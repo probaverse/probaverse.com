@@ -21,7 +21,7 @@ image:
 knitr::opts_chunk$set(message = FALSE, warning = FALSE)
 ```
 
-Three releases went to CRAN this week, and they are really one idea.
+Three releases went to CRAN this week, and they are really one idea, plus a new verb: the graft.
 
 - **distionary 0.2.0** gives every distribution a *support*.
 - **distplyr 0.3.0** rebuilds every manipulation verb on top of supports.
@@ -31,11 +31,11 @@ Here is the idea, and why I think it is the most useful thing to land in the pro
 
 ## A distribution knew *how*, but not *where*
 
-A distionary distribution has always known *how* to be evaluated. Hand it a number and it hands back a CDF value, a density, a quantile. What it did not know was *where* it puts its probability.
+A distionary distribution has always known *how* to be evaluated. Hand it a number and it hands back a CDF value, a density, a quantile. What it did not know was *where* it puts discrete probability.
 
-For the built-in families that hardly mattered, because each one arrives with its own formulas. The trouble starts when a distribution is not one of the built-ins --- when you have defined it yourself, or transformed one into something new. Then anything the package has to *derive*, like a quantile it must solve for or a moment it must integrate, needs some assumption about where the probability sits. The assumption was: continuous, spread smoothly over an interval.
+For the built-in families, that hardly mattered, because each one arrives with its own formulas. The trouble starts when a distribution is not one of the built-ins --- when you have defined it yourself, or transformed one into something new. Then anything the package has to *derive*, like a quantile it must solve for or a moment it must integrate, needs some assumption about where discrete probability sits. The assumption was: continuous, spread smoothly over an interval.
 
-That is a fine assumption right up until it isn't. Think about daily rainfall. Most days are dry, so the record is mostly zeros. This is not a continuous distribution that happens to have a small mean; it is a lump of probability sitting exactly on zero, with a continuous curve off to the right of it. The same shape of problem shows up in an insurance portfolio where most policies never claim, or a river reach that stops flowing in late summer.
+That is a fine assumption right up until it isn't. Think about daily rainfall. Most days are dry, so the record is mostly zeros. This is not a continuous distribution that happens to have a small mean; it is a lump of probability sitting exactly on zero, with a continuous curve off to the right of it. The same shape of problem shows up in an insurance portfolio where most policies never claim. It also appears when putting a smooth tail onto an empirical distribution (also known as Historical Simulation) --- which is precisely what the new graft verb does.
 
 That lump is the whole difficulty. Ask a continuity assumption for the median and it goes hunting for the place where the CDF crosses 0.5, sliding around a jump where no such crossing exists.
 
@@ -64,22 +64,15 @@ rain <- distribution(
 support(rain)
 ```
 
-Worth being careful about what went in there. A mixed distribution has no density of its own --- you cannot differentiate a jump --- so the `density` argument carries the *continuous part* alone, the `pmf` carries the mass sitting on zero, and the support is what tells the package how the two fit together. That division is the whole trick: neither piece is the distribution, and previously there was nowhere to write down how they joined.
-
-## So what?
-
-The payoff is that the derived quantities stop being approximate, or stop erroring outright.
-
-Quantiles land *on* the atom rather than near it, along a path that used to raise an error outright for a discrete or mixed distribution. Any probability up to 0.4 is answered with exactly zero, because that is the honest answer --- the driest 40% of days had no rain at all:
+Now the quantiles evaluate to 0 exactly when they should, rather than "roughly zero":
 
 ```{r}
-eval_quantile(rain, at = c(0.2, 0.4, 0.5, 0.9))
+eval_quantile(rain, at = c(0.3, 0.4, 0.5))
 ```
 
-Moments work too, by summing over the atoms and integrating over the regions --- a calculation the package simply did not do for anything but a continuous distribution before:
+Moment calculations also have this exactness baked in:
 
 ```{r}
-mean(rain)
 variance(rain)
 ```
 
@@ -107,6 +100,6 @@ That now brings a library with a mixed-up suite in it back up to a set that work
 
 When distionary [went to CRAN](/post/2025-12-01-distionary-launch/), I wrote that explicit support for discrete and mixed distributions was coming soon. This is that, and it took a detour through a package about infinite sets to get here.
 
-It matters beyond tidier quantiles. Real systems are lumpy. A flow that is sometimes zero, a loss that is usually nothing, a measurement that piles up at a detection limit --- these are mixed distributions, and until now the probaverse could represent them but could not reliably compute with them. Now the lump is a stated fact about the distribution that every routine can read, including routines I have not written yet.
+It matters beyond tidier quantiles. Real systems are lumpy. A flow that is sometimes zero; an empirical distribution contains discrete points --- these all have discrete points, and until now the probaverse could represent them but could not reliably compute with them. Now the lump is a stated fact about the distribution that every routine can read, including routines I have not written yet.
 
-Next on the roadmap: multivariate distributions, and distribution families rather than single distributions. As always, how fast that arrives depends on funding.
+Next on the roadmap: multivariate distributions, and distribution families rather than single distributions.
