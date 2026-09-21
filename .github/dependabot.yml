@@ -1,0 +1,25 @@
+# Dependabot was reporting alerts but had no way to act on them: security
+# fixes were switched off and there was no config here. This turns on version
+# updates and groups everything into single PRs rather than one per advisory.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      # All security advisories arrive together. The current backlog is 15
+      # alerts across only three packages (tar, picomatch, preact), all of
+      # which are already permitted by the ranges in package.json, so this
+      # lands as one lockfile refresh.
+      npm-security:
+        applies-to: security-updates
+        patterns:
+          - "*"
+      # Routine version bumps, kept separate from security fixes so an urgent
+      # one is never queued behind a Tailwind major.
+      npm-versions:
+        applies-to: version-updates
+        patterns:
+          - "*"
