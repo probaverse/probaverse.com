@@ -59,8 +59,8 @@ m2 &lt;- minimize(d2, draws = 5)</code></pre>
 <pre class="r"><code>mean(m2)</code></pre>
 <pre><code>## [1] 55.27021</code></pre>
 <p>Check out a quick plot comparing the CDF of both models.</p>
-<pre class="r"><code>plot(m1, n = 1000)
-plot(m2, add = TRUE, n = 1000, col = &quot;red&quot;, lty = 2)
+<pre class="r"><code>plot(m1, &quot;cdf&quot;, n = 1000)
+plot(m2, &quot;cdf&quot;, add = TRUE, n = 1000, col = &quot;red&quot;, lty = 2)
 legend(
   &quot;bottomright&quot;,
   legend = c(&quot;empirical&quot;, &quot;gamma&quot;),

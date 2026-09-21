@@ -75,8 +75,8 @@ mean(m2)
 Check out a quick plot comparing the CDF of both models.
 
 ```{r}
-plot(m1, n = 1000)
-plot(m2, add = TRUE, n = 1000, col = "red", lty = 2)
+plot(m1, "cdf", n = 1000)
+plot(m2, "cdf", add = TRUE, n = 1000, col = "red", lty = 2)
 legend(
   "bottomright",
   legend = c("empirical", "gamma"),
