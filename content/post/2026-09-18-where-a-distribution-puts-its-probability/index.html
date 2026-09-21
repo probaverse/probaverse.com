@@ -18,19 +18,15 @@ image:
 ---
 
 
-<p>Three releases went to CRAN this week, and they are really one idea.</p>
+<p>Three releases went to CRAN this week, and they are really one idea, plus a new verb: the graft.</p>
 <ul>
 <li><strong>distionary 0.2.0</strong> gives every distribution a <em>support</em>.</li>
 <li><strong>distplyr 0.3.0</strong> rebuilds every manipulation verb on top of supports.</li>
 <li><strong>probaverse 0.1.1</strong> pins the suite so that installing it gets you the matching set.</li>
 </ul>
-<p>Here is the idea, and why I think it is the most useful thing to land in the probaverse so far.</p>
 <h2 id="a-distribution-knew-how-but-not-where">A distribution knew <em>how</em>, but not <em>where</em></h2>
-<p>A distionary distribution has always known <em>how</em> to be evaluated. Hand it a number and it hands back a CDF value, a density, a quantile. What it did not know was <em>where</em> it puts its probability.</p>
-<p>For the built-in families that hardly mattered, because each one arrives with its own formulas. The trouble starts when a distribution is not one of the built-ins — when you have defined it yourself, or transformed one into something new. Then anything the package has to <em>derive</em>, like a quantile it must solve for or a moment it must integrate, needs some assumption about where the probability sits. The assumption was: continuous, spread smoothly over an interval.</p>
-<p>That is a fine assumption right up until it isn’t. Think about daily rainfall. Most days are dry, so the record is mostly zeros. This is not a continuous distribution that happens to have a small mean; it is a lump of probability sitting exactly on zero, with a continuous curve off to the right of it. The same shape of problem shows up in an insurance portfolio where most policies never claim, or a river reach that stops flowing in late summer.</p>
-<p>That lump is the whole difficulty. Ask a continuity assumption for the median and it goes hunting for the place where the CDF crosses 0.5, sliding around a jump where no such crossing exists.</p>
-<h2 id="supports">Supports</h2>
+<p>A distionary distribution has always known <em>how</em> to be evaluated. Hand it a number and it hands back a CDF value, a density, a quantile. What it did not know was <em>where</em> it puts discrete probability.</p>
+<p>For the built-in families, that hardly mattered, because each one arrives with its own formulas. The trouble starts when a distribution is not one of the built-ins — when you have defined it yourself, or transformed one into something new. Then anything the package has to <em>derive</em>, like a quantile it must solve for, needs some assumption about where discrete probability sits. The assumption was: continuous, spread smoothly over an interval.</p>
 <p>So a distribution now carries a support: the set where its probability lives, with atoms tracked separately from continuous regions.</p>
 <pre class="r"><code>library(probaverse)
 support(dst_pois(3))</code></pre>
@@ -39,15 +35,8 @@ support(dst_pois(3))</code></pre>
 ## Integer series of length Inf:
 ## 0, 1, 2, 3, 4, 5, ...</code></pre>
 <p>Those atoms are not a vector that I quietly cut off at some large number. It is the entire infinite set, described by the rule that generates it, which is what the <a href="/post/2026-03-31-introducing-discretes-0-1-0/">discretes package</a> was built to make possible.</p>
-<p>Now for the rainfall problem. Say 40% of days are dry and the wet days follow an exponential distribution. The new <code>.support</code> argument is how you say that out loud:</p>
-<pre class="r"><code>p &lt;- 0.4
-rain &lt;- distribution(
-  cdf = function(x) ifelse(x &lt; 0, 0, p + (1 - p) * pexp(x, rate = 0.2)),
-  density = function(x) ifelse(x &lt;= 0, 0, (1 - p) * dexp(x, rate = 0.2)),
-  pmf = function(x) ifelse(x == 0, p, 0),
-  .support = mixed(discrete = 0, continuous = c(0, Inf)),
-  .name = &quot;Zero-inflated Exponential&quot;
-)
+<p>The payoff arrives as soon as mass and density share a distribution. Mix a point mass at zero with an exponential — 40% dry days, rain otherwise — and the quantiles land on zero exactly when they should, rather than “roughly zero”:</p>
+<pre class="r"><code>rain &lt;- mix(dst_degenerate(0), dst_exp(rate = 0.2), weights = c(0.4, 0.6))
 support(rain)</code></pre>
 <pre><code>## &lt;support: mixed&gt;
 ## -- atoms --
@@ -55,31 +44,43 @@ support(rain)</code></pre>
 ## 0
 ## -- continuous --
 ## [0, Inf]</code></pre>
-<p>Worth being careful about what went in there. A mixed distribution has no density of its own — you cannot differentiate a jump — so the <code>density</code> argument carries the <em>continuous part</em> alone, the <code>pmf</code> carries the mass sitting on zero, and the support is what tells the package how the two fit together. That division is the whole trick: neither piece is the distribution, and previously there was nowhere to write down how they joined.</p>
-<h2 id="so-what">So what?</h2>
-<p>The payoff is that the derived quantities stop being approximate, or stop erroring outright.</p>
-<p>Quantiles land <em>on</em> the atom rather than near it, along a path that used to raise an error outright for a discrete or mixed distribution. Any probability up to 0.4 is answered with exactly zero, because that is the honest answer — the driest 40% of days had no rain at all:</p>
-<pre class="r"><code>eval_quantile(rain, at = c(0.2, 0.4, 0.5, 0.9))</code></pre>
-<pre><code>## [1] 0.0000000 0.0000000 0.9116078 8.9587973</code></pre>
-<p>Moments work too, by summing over the atoms and integrating over the regions — a calculation the package simply did not do for anything but a continuous distribution before:</p>
-<pre class="r"><code>mean(rain)</code></pre>
-<pre><code>## [1] 3</code></pre>
-<pre class="r"><code>variance(rain)</code></pre>
-<pre><code>## [1] 21</code></pre>
-<p>And because distplyr 0.3.0 reads and rewrites supports rather than guessing at them, a manipulated distribution still knows where it lives. Two of the new verbs, <code>trim_left()</code> and <code>graft_right()</code>, take a <code>knot</code> argument that decides what happens to mass sitting exactly on the cut point — which is precisely the question the old machinery could not even ask. Trim away the dry days and what remains is no longer mixed at all:</p>
-<pre class="r"><code>wet &lt;- trim_left(rain, of = 0, knot = &quot;discard&quot;)
-support(wet)</code></pre>
-<pre><code>## &lt;support: continuous&gt;
+<pre class="r"><code>eval_quantile(rain, at = c(0.3, 0.4, 0.5))</code></pre>
+<pre><code>## [1] 0.0000000 0.0000000 0.9116078</code></pre>
+<h2 id="grafting-a-tail-onto-history">Grafting a tail onto history</h2>
+<p>The more interesting case is the new graft verbs, where supports really earn themselves.</p>
+<p>Historical Simulation — using the observed record directly as the distribution — is about the most honest thing you can do with data, right up until you ask it about something rarer than anything you have seen. Here are the hundred annual flows of the Nile:</p>
+<pre class="r"><code>x &lt;- as.numeric(Nile)
+flows &lt;- dst_empirical(x)
+vtype(flows)</code></pre>
+<pre><code>## [1] &quot;discrete&quot;</code></pre>
+<pre class="r"><code>eval_quantile(flows, at = 0.999)</code></pre>
+<pre><code>## [1] 1370</code></pre>
+<p>Discrete, with an atom on every observation — and its answer to a one-in-a-thousand question is just the largest flood on record. It has nowhere else to put one.</p>
+<p><code>graft_right()</code> replaces the top of a distribution with a model of the top. Fit a generalised Pareto to the exceedances over 1150 with famish, then graft it on. The new <code>knot</code> argument decides which side the flow sitting exactly on 1150 goes to, and by default it stays with the body:</p>
+<pre class="r"><code>u &lt;- 1150
+flood &lt;- graft_right(flows, of = u, tail_excess = fit_dst_gp(x[x &gt; u] - u))
+flood</code></pre>
+<pre><code>## Graft distribution (mixed)
+## --Components--
+##  distribution                           weight
+##  Finite                                 0.88  
+##  Shifted(Generalised Pareto(75, -0.15)) 0.12</code></pre>
+<p>The result is mixed, and the support says precisely what happened to it: the observations below the knot survive as atoms — including 1150 itself, listed last — and above it there is density instead. The fitted tail came out with a negative shape, so it is bounded — and the support is where that upper limit shows up, rather than something you work out by hand afterwards.</p>
+<pre class="r"><code>support(flood)</code></pre>
+<pre><code>## &lt;support: mixed&gt;
+## -- atoms --
+## Numeric vector series of length 76:
+## 456, 649, 676, ..., 1120, 1140, 1150
 ## -- continuous --
-## [0, Inf]</code></pre>
-<pre class="r"><code>mean(wet)</code></pre>
-<pre><code>## [1] 5</code></pre>
-<p>A mean of 5 mm on wet days, from a distribution averaging 3 mm over all days. Same model, and now both numbers are available from it without my having to take the thing apart by hand.</p>
+## [1150, 1642.71]</code></pre>
+<pre class="r"><code>eval_quantile(flood, at = c(0.99, 0.999))</code></pre>
+<pre><code>## [1] 1305.214 1405.025</code></pre>
+<p>None of this is a special case that distplyr hard-codes. The verb asks the empirical distribution where its probability is, maps it, and hands back something that can answer the same question about itself.</p>
 <h2 id="one-install-one-working-set">One install, one working set</h2>
-<p>The catch with a suite of packages is that a good idea in one of them is a breaking change in the others. distplyr 0.3.0 genuinely requires distionary 0.2.0; there is no meaningful way to run the new verbs on the old distribution object. So probaverse 0.1.1 does something dull and worthwhile: it records minimum versions for the packages it loads.</p>
+<p>The catch with a suite is that a good idea in one package is a breaking change in the others: distplyr 0.3.0 genuinely requires distionary 0.2.0. So probaverse 0.1.1 does something dull and worthwhile, and records minimum versions for the packages it loads.</p>
 <pre class="r"><code>install.packages(&quot;probaverse&quot;)</code></pre>
-<p>That now brings a library with a mixed-up suite in it back up to a set that works together, rather than leaving you to find out which pair disagrees.</p>
+<p>That now brings a mixed-up library back up to a set that works together, rather than leaving you to find out which pair disagrees.</p>
 <h2 id="what-this-opens-up">What this opens up</h2>
 <p>When distionary <a href="/post/2025-12-01-distionary-launch/">went to CRAN</a>, I wrote that explicit support for discrete and mixed distributions was coming soon. This is that, and it took a detour through a package about infinite sets to get here.</p>
-<p>It matters beyond tidier quantiles. Real systems are lumpy. A flow that is sometimes zero, a loss that is usually nothing, a measurement that piles up at a detection limit — these are mixed distributions, and until now the probaverse could represent them but could not reliably compute with them. Now the lump is a stated fact about the distribution that every routine can read, including routines I have not written yet.</p>
-<p>Next on the roadmap: multivariate distributions, and distribution families rather than single distributions. As always, how fast that arrives depends on funding.</p>
+<p>Real systems are lumpy. A flow that is sometimes zero, an empirical distribution that is nothing but discrete points — until now the probaverse could represent these but could not reliably compute with them. Now the lump is a stated fact about the distribution that every routine can read, including routines I have not written yet.</p>
+<p>Next on the roadmap: multivariate distributions, and distribution families rather than single distributions.</p>
